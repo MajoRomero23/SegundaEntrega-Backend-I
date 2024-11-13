@@ -1,0 +1,82 @@
+<h2>Ramos en Tiempo Real</h2>
+
+<ul id="productList"></ul>
+
+<!-- Agregando un producto nuevo -->
+<div id="productForm">
+    <h2>Agregar producto nuevo</h2>
+    <input type="text" id="title" placeholder="Titulo del producto" required>
+    <input type="text" id="description" placeholder="Descripción" required>
+    <input type="text" id="code" placeholder="Código" required>
+    <input type="number" id="price" placeholder="Precio" required>
+    <input type="number" id="stock" placeholder="Stock" required>
+    <input type="text" id="category" placeholder="Categoría" required>
+    <button onclick="addProduct()">Agregar Producto</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    socket.on('productList', (products) => {
+        const productList = document.getElementById('productList');
+        productList.innerHTML = '';
+
+        products.forEach(product => {
+            const li = document.createElement('li');
+            li.classList.add('product-item');
+
+            const titleDiv = document.createElement('div');
+            titleDiv.classList.add('product-title');
+            titleDiv.textContent = product.title;
+
+            const priceDiv = document.createElement('div');
+            priceDiv.classList.add('product-price');
+            priceDiv.textContent = `Precio: $${product.price}`;
+
+            const descriptionDiv = document.createElement('div');
+            descriptionDiv.classList.add('product-description');
+            descriptionDiv.textContent = product.description;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Eliminar';
+            deleteButton.classList.add('product-delete-btn');
+            deleteButton.onclick = () => deleteProduct(product.id);
+
+            li.appendChild(titleDiv);
+            li.appendChild(priceDiv);
+            li.appendChild(descriptionDiv);
+            li.appendChild(deleteButton);
+            productList.appendChild(li);
+        });
+    });
+
+    function addProduct() {
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const code = document.getElementById('code').value;
+        const price = document.getElementById('price').value;
+        const stock = document.getElementById('stock').value;
+        const category = document.getElementById('category').value;
+
+        if (title && description && code && price && stock && category) {
+            socket.emit('newProduct', {
+                title,
+                description,
+                code,
+                price: parseFloat(price),
+                stock: parseInt(stock),
+                category
+            });
+
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('code').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('stock').value = '';
+            document.getElementById('category').value = '';
+        } else {
+            alert("Por favor, revisa que todos los campos estén completos");
+        }
+    }
+</script>
